@@ -21,8 +21,11 @@
 Adafruit_NeoPixel bar1 = Adafruit_NeoPixel(30, BAR1, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel bar2 = Adafruit_NeoPixel(30, BAR2, NEO_GRB + NEO_KHZ800);
 
+#define DECAY 100
+#define THRESHOLD 5000000
 
-unsigned int sum1;
+uint16_t voice1;
+uint32_t sum1;
 unsigned int sum2; 
 
 void setup() {
@@ -36,12 +39,27 @@ void setup() {
   pinMode(SW2, INPUT_PULLUP);
   bar1.begin(); bar2.begin();
   bar1.setBrightness(255); bar2.setBrightness(255);
-  
+
+  voice1 = 0;
+  sum1 = 0;
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  Serial.print("voice1: ");
-  Serial.println( analogRead(VOICE1) );
-  delay(0.1);
+  voice1 = analogRead(VOICE1);
+  Serial.print("voice1:\t"); Serial.print(voice1); Serial.print("\t\t");
+  sum1 += voice1/4;
+  if (sum1 > DECAY) {
+	  sum1 -= DECAY;
+	  //sum1 -= sum1 >> 12;
+  }
+  else {
+	  sum1 = 0;
+  }
+  Serial.print("sum1:\t"); Serial.println(sum1);
+
+  if (sum1 > THRESHOLD)
+	  Serial.println("YOU WIN");
+
+  delay(0.2);
 }
