@@ -1,15 +1,12 @@
 // wine glass smasher
 #include <Adafruit_NeoPixel.h>
 
-#define VOICE1  14 // pin A0, microphone 1
-#define VOICE2  15 // pin A1, microphone 2
-#define MOTOR1  9 // motor 1
-#define MOTOR2  10 // motor 2
-#define SW1     7 // limit switch 1
-#define SW2     8 // limit switch 2
+#define VOICE  14 // pin A0, microphone 1
+#define MOTOR  9 // motor 1
+#define SW     7 // limit switch 1
 
-#define BAR1    0 // LED strip 1
-#define BAR2    1 // LED strip 2
+#define LEDBAR    0 // LED strip 1
+#define NUMLED 	16
 // Parameter 1 = number of pixels in strip
 // Parameter 2 = pin number (most are valid)
 // Parameter 3 = pixel type flags, add together as needed:
@@ -18,48 +15,64 @@
 //   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
 //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
 //Adafruit_NeoPixel strip = Adafruit_NeoPixel(160, PIN, NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel bar1 = Adafruit_NeoPixel(30, BAR1, NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel bar2 = Adafruit_NeoPixel(30, BAR2, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel ledbar = Adafruit_NeoPixel(NUMLED, LEDBAR, NEO_GRB + NEO_KHZ800);
 
 #define DECAY 100
-#define THRESHOLD 5000000
+#define THRESHOLD 1000000
 
-uint16_t voice1;
-uint32_t sum1;
-unsigned int sum2; 
+int16_t voice1;
+int32_t sum1;
+int32_t s;
+uint8_t i;
 
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
-  pinMode(VOICE1, INPUT);
-  pinMode(VOICE2, INPUT);
-  pinMode(MOTOR1, OUTPUT);
-  pinMode(MOTOR2, OUTPUT);
-  pinMode(SW1, INPUT_PULLUP);
-  pinMode(SW2, INPUT_PULLUP);
-  bar1.begin(); bar2.begin();
-  bar1.setBrightness(255); bar2.setBrightness(255);
+  pinMode(VOICE, INPUT);
+  pinMode(MOTOR, OUTPUT);
+  pinMode(SW, INPUT_PULLUP);
+  ledbar.begin();
+  ledbar.setBrightness(255); ledbar.show();
+  delay(0.2);
+  //ledbar.setBrightness(0); ledbar.show();
 
   voice1 = 0;
   sum1 = 0;
+  digitalWrite(MOTOR, LOW);
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  voice1 = analogRead(VOICE1);
+  voice1 = analogRead(VOICE);
   Serial.print("voice1:\t"); Serial.print(voice1); Serial.print("\t\t");
   sum1 += voice1/4;
   if (sum1 > DECAY) {
 	  sum1 -= DECAY;
-	  //sum1 -= sum1 >> 12;
   }
   else {
 	  sum1 = 0;
   }
   Serial.print("sum1:\t"); Serial.println(sum1);
 
-  if (sum1 > THRESHOLD)
+  /*
+  s = sum1;
+  //ledbar.setBrightness(0); // start with all pixels off
+  for(i = 0; i < NUMLED; i++) { // turn on pixels 1 by 1
+	  if (s >= THRESHOLD/NUMLED) {
+		  //ledbar.setPixelColor(i, ledbar.Color(255,255,255));
+		  Serial.println("led ON");
+	  }
+	  s -= THRESHOLD/NUMLED;
+  }
+  ledbar.show();
+  */
+
+  if (sum1 > THRESHOLD) {
 	  Serial.println("YOU WIN");
+	  digitalWrite(MOTOR, HIGH);
+	  delay(1);
+	  digitalWrite(MOTOR, LOW);
+  }
 
   delay(0.2);
 }
