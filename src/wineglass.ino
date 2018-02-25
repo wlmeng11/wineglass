@@ -41,6 +41,7 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  //printf("voice1: %d", analogRead(VOICE1));
+  Serial.print("voice1: ");
+  Serial.println( analogRead(VOICE1) );
   delay(0.1);
 }
